@@ -24,9 +24,9 @@ int sleep_counter = 0;
 
 // ---------------------------- Song Library  -------------------------------------------- //
 int progress_indicator = 0;
-char Twinkle_Little_Star[] = "CCGGAAGFFEEDDCGGFFEEDGGFFEEDCCGGAAGFFEEDDC";
-// Twinkle_Little_Star: "CCGGAAGFFEEDDCGGFFEEDGGFFEEDCCGGAAGFFEEDDC"
-// Peppa Pig Theme Song: "GECDGGBDFECGECDGGBDFECGECDGGBDFECEEGGECDGGBDFECEEDGECDGGBDFECGGC"
+char piano_sheet[] = "C4C4G4G4A4A4G4F4F4E4E4D4D4C4G4G4F4F4E4E4D4G4G4F4F4E4E4D4C4C4G4G4A4A4G4F4F4E4E4D4D4C4";
+// Twinkle Little Star: "C4C4G4G4A4A4G4F4F4E4E4D4D4C4G4G4F4F4E4E4D4G4G4F4F4E4E4D4C4C4G4G4A4A4G4F4F4E4E4D4D4C4"
+// Peppa Pig Theme Song: "G4E4C4D4G3G3B3D4F4E4C4G4E4C4D4G3G3B3D4F4E4C4G4E4C4D4G3G3B3D4F4E4C4E4E4G4G4E4C4D4G3G3B3D4F4E4C4E4E4D4G4E4C4D4G3G3B3D4F4E4C4G4G4C5"
 
 // ---------------------------- Setup Function  ------------------------------------------ //
 // Run once at startup
@@ -128,8 +128,13 @@ void Main_Function_1 (char note_recognition, char previous_note) {
 // Detect notes played and display associated lights
 void Main_Function_2 (char note_recognition, char previous_note) {
   
-  if (progress_indicator == 0 && Sleep_Mode() != true) {
-    Piano_Key_Indicator(Note_to_LED_ID_Map(Twinkle_Little_Star[progress_indicator]), strip.Color(255, 0, 0), 5);
+  if (Sleep_Mode() != true && progress_indicator == 0) {
+    Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator], piano_sheet[progress_indicator+1]), strip.Color(255, 0, 0), 5);
+  }
+
+  if (Sleep_Mode() == true && note_recognition != 'N'){
+    sleep_counter = 0;
+    progress_indicator = 0;
   }
 
   if (previous_note_recognition == note_recognition) {
@@ -142,30 +147,26 @@ void Main_Function_2 (char note_recognition, char previous_note) {
   if (same_note_counter >= 2) {
     if (note_recognition == 'N') {
       Sleep_Mode();
-      return;   
+      return;
     }
-    else if (note_recognition == Twinkle_Little_Star[progress_indicator] && progress_indicator < strlen(Twinkle_Little_Star)) {
-      if (Twinkle_Little_Star[progress_indicator] == Twinkle_Little_Star[progress_indicator+1]) {
-        Piano_Key_Indicator(Note_to_LED_ID_Map(Twinkle_Little_Star[progress_indicator]), strip.Color(255, 0, 100), 5);
-        progress_indicator++;
-        delay(200);
+    else if (note_recognition == piano_sheet[progress_indicator] && progress_indicator < strlen(piano_sheet)) {      
+      if (piano_sheet[progress_indicator] == piano_sheet[progress_indicator+2]) {
+        Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator], piano_sheet[progress_indicator+1]), strip.Color(255, 0, 100), 5);
+        progress_indicator = progress_indicator + 2;
+        delay(300);
         Serial.println(progress_indicator);
       }
       else {
-        Piano_Key_Indicator(Note_to_LED_ID_Map(Twinkle_Little_Star[progress_indicator]), strip.Color(5, 180, 175), 5);
-        progress_indicator++;
+        Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator], piano_sheet[progress_indicator+1]), strip.Color(5, 180, 175), 5);
+        progress_indicator = progress_indicator + 2;
         Serial.println(progress_indicator);
-        Piano_Key_Indicator(Note_to_LED_ID_Map(Twinkle_Little_Star[progress_indicator]), strip.Color(255, 0, 0), 5);
+        Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator], piano_sheet[progress_indicator+1]), strip.Color(255, 0, 0), 5);
       }
       sleep_counter = 1;
     }
-    else if (Sleep_Mode() == true){
-      sleep_counter = 0;
-      progress_indicator = 0;
-    }
   }
 
-  if (progress_indicator == strlen(Twinkle_Little_Star)) {
+  if (progress_indicator == strlen(piano_sheet)) {
     TheaterChaseRainbow(20);
     delay(1000);
     progress_indicator = 0;
@@ -175,22 +176,48 @@ void Main_Function_2 (char note_recognition, char previous_note) {
 
 // ---------------------------- Note to LED Map  ----------------------------------------- //
 // Map each musical note to its associated LED indicator.
-int Note_to_LED_ID_Map (char musical_note) {
+int Note_to_LED_ID_Map (char musical_note, char pitch) {
   switch (musical_note) {
     case 'C':
-      return 25;
+      if (pitch == '4') {
+        return 25;
+      }
+      else if (pitch == '5') {
+        return 37;
+      }
     case 'D':
-      return 27;
+      if (pitch == '4') {
+        return 27;
+      }
     case 'E':
-      return 29;
+      if (pitch == '4') {
+        return 29;
+      }
     case 'F':
-      return 30;
+      if (pitch == '4') {
+        return 30;
+      }
     case 'G':
-      return 32;
+      if (pitch == '3') {
+        return 21;
+      }
+      else if (pitch == '4') {
+        return 32;
+      }
     case 'A':
-      return 34;
+      if (pitch == '3') {
+        return 23;
+      }
+      else if (pitch == '4') {
+        return 34;
+      }
     case 'B':
-      return 36; 
+      if (pitch == '3') {
+        return 24;
+      }
+      else if (pitch == '4') {
+        return 36;
+      }
   }
 }
 
@@ -235,7 +262,7 @@ bool Sleep_Mode() {
 // strip.Color(red, green, blue) as shown in the loop() function above),
 // and a delay time (in milliseconds) between pixels.
 void ColorWipe(uint32_t color, int wait) {
-  for(int i=0; i<strip.numPixels(); i++) { //  For each pixel in strip...
+  for(int i = 0; i < strip.numPixels(); i++) { //  For each pixel in strip...
     strip.setPixelColor(i, color);         //  Set pixel's color (in RAM)
     strip.show();                          //  Update strip to match
     delay(wait);                           //  Pause for a moment
@@ -247,11 +274,11 @@ void ColorWipe(uint32_t color, int wait) {
 // a la strip.Color(r,g,b) as mentioned above), and a delay time (in ms)
 // between frames.
 void TheaterChase(uint32_t color, int wait) {
-  for(int a=0; a<10; a++) {  // Repeat 10 times...
-    for(int b=0; b<3; b++) { //  'b' counts from 0 to 2...
+  for(int a = 0; a < 10; a++) {  // Repeat 10 times...
+    for(int b = 0; b < 3; b++) { //  'b' counts from 0 to 2...
       strip.clear();         //   Set all pixels in RAM to 0 (off)
       // 'c' counts up from 'b' to end of strip in steps of 3...
-      for(int c=b; c<strip.numPixels(); c += 3) {
+      for(int c = b; c < strip.numPixels(); c += 3) {
         strip.setPixelColor(c, color); // Set pixel 'c' to value 'color'
       }
       strip.show(); // Update strip with new contents
@@ -285,11 +312,11 @@ void Rainbow(int wait) {
 // Rainbow-enhanced theater marquee. Pass delay time (in ms) between frames.
 void TheaterChaseRainbow(int wait) {
   int firstPixelHue = 0;     // First pixel starts at red (hue 0)
-  for(int a=0; a<30; a++) {  // Repeat 30 times...
-    for(int b=0; b<3; b++) { //  'b' counts from 0 to 2...
+  for(int a = 0; a < 30; a++) {  // Repeat 30 times...
+    for(int b = 0; b < 3; b++) { //  'b' counts from 0 to 2...
       strip.clear();         //   Set all pixels in RAM to 0 (off)
       // 'c' counts up from 'b' to end of strip in increments of 3...
-      for(int c=b; c<strip.numPixels(); c += 3) {
+      for(int c = b; c < strip.numPixels(); c += 3) {
         // hue of pixel 'c' is offset by an amount to make one full
         // revolution of the color wheel (range 65536) along the length
         // of the strip (strip.numPixels() steps):
@@ -316,7 +343,7 @@ char Tone_det () {
   for(int i = 0; i < 128; i++) {
     a = analogRead(Mic_Pin) - 500; // rough zero shift 
     // Serial.println(a);
-    if (a < 200) {
+    if (a < 130) {
       a = 0;
     }
     // Serial.println(a);
@@ -336,7 +363,7 @@ char Tone_det () {
   // for very low or no amplitude, this code won't start
   // it takes very small aplitude of sound to initiate for value sum2-sum1 > 3, 
   // change sum2-sum1 threshold based on requirement
-  if (sum2 - sum1 > 50) {  
+  if (sum2 - sum1 > 45) {  
     
     FFT (128, sampling);        
     // EasyFFT based optimised  FFT code, 
