@@ -24,7 +24,7 @@ int sleep_counter = 0;
 
 // ---------------------------- Song Library  -------------------------------------------- //
 int progress_indicator = 0;
-char piano_sheet[] = "C4C4G4G4A4A4G4F4F4E4E4D4D4C4G4G4F4F4E4E4D4G4G4F4F4E4E4D4C4C4G4G4A4A4G4F4F4E4E4D4D4C4";
+char piano_sheet[] = "G4E4C4D4G3G3B3D4F4E4C4G4E4C4D4G3G3B3D4F4E4C4G4E4C4D4G3G3B3D4F4E4C4E4E4G4G4E4C4D4G3G3B3D4F4E4C4E4E4D4G4E4C4D4G3G3B3D4F4E4C4G4G4C5";
 // Twinkle Little Star: "C4C4G4G4A4A4G4F4F4E4E4D4D4C4G4G4F4F4E4E4D4G4G4F4F4E4E4D4C4C4G4G4A4A4G4F4F4E4E4D4D4C4"
 // Peppa Pig Theme Song: "G4E4C4D4G3G3B3D4F4E4C4G4E4C4D4G3G3B3D4F4E4C4G4E4C4D4G3G3B3D4F4E4C4E4E4G4G4E4C4D4G3G3B3D4F4E4C4E4E4D4G4E4C4D4G3G3B3D4F4E4C4G4G4C5"
 
@@ -130,6 +130,9 @@ void Main_Function_2 (char note_recognition, char previous_note) {
   
   if (Sleep_Mode() != true && progress_indicator == 0) {
     Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator], piano_sheet[progress_indicator+1]), strip.Color(255, 0, 0), 5);
+    if (progress_indicator+3 < strlen(piano_sheet)) {
+      Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator+2], piano_sheet[progress_indicator+3]), strip.Color(182, 71, 2), 5);
+    }
   }
 
   if (Sleep_Mode() == true && note_recognition != 'N'){
@@ -144,16 +147,19 @@ void Main_Function_2 (char note_recognition, char previous_note) {
     same_note_counter = 0;
   }
 
-  if (same_note_counter >= 2) {
+  if (same_note_counter >= 1) {
     if (note_recognition == 'N') {
       Sleep_Mode();
       return;
     }
     else if (note_recognition == piano_sheet[progress_indicator] && progress_indicator < strlen(piano_sheet)) {      
       if (piano_sheet[progress_indicator] == piano_sheet[progress_indicator+2]) {
-        Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator], piano_sheet[progress_indicator+1]), strip.Color(255, 0, 100), 5);
         progress_indicator = progress_indicator + 2;
-        delay(300);
+        Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator], piano_sheet[progress_indicator+1]), strip.Color(255, 0, 100), 5);
+        if (progress_indicator+3 < strlen(piano_sheet)) {
+          Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator+2], piano_sheet[progress_indicator+3]), strip.Color(182, 71, 2), 5);
+        }
+        delay(650);
         Serial.println(progress_indicator);
       }
       else {
@@ -161,6 +167,14 @@ void Main_Function_2 (char note_recognition, char previous_note) {
         progress_indicator = progress_indicator + 2;
         Serial.println(progress_indicator);
         Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator], piano_sheet[progress_indicator+1]), strip.Color(255, 0, 0), 5);
+        if (progress_indicator+2 < strlen(piano_sheet)) {
+          if (piano_sheet[progress_indicator] == piano_sheet[progress_indicator+2]) {
+            Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator+4], piano_sheet[progress_indicator+5]), strip.Color(182, 71, 2), 5);
+          }
+          else {
+            Piano_Key_Indicator(Note_to_LED_ID_Map(piano_sheet[progress_indicator+2], piano_sheet[progress_indicator+3]), strip.Color(182, 71, 2), 5);
+          }
+        }
       }
       sleep_counter = 1;
     }
@@ -363,7 +377,7 @@ char Tone_det () {
   // for very low or no amplitude, this code won't start
   // it takes very small aplitude of sound to initiate for value sum2-sum1 > 3, 
   // change sum2-sum1 threshold based on requirement
-  if (sum2 - sum1 > 45) {  
+  if (sum2 - sum1 > 40) {  
     
     FFT (128, sampling);        
     // EasyFFT based optimised  FFT code, 
